@@ -54,7 +54,11 @@ from .const import (
     SUBENTRY_TYPE_DEVICE,
     TRANSPORT_SERIAL_PROXY,
 )
-from .coordinator import ModbusCoordinator
+from .coordinator import (
+    ModbusCoordinator,
+    get_legacy_unique_id_head,
+    get_unique_id_head,
+)
 from .entity_management.base import ModbusEntityDescription
 from .entity_management.const import ControlType
 from .entity_management.device_loader import create_device_info
@@ -185,6 +189,8 @@ async def async_setup_entry(
     entry.runtime_data = runtime
     _setup_device_devices(entry, device_registry, gateway_device)
     entry.async_on_unload(entry.add_update_listener(async_update_listener))
+    # First, so the composite move below finds entities by their new unique id.
+    _async_move_entity_unique_ids_to_gateway(hass, entry, runtime)
     _async_move_composite_entity_ids(hass, entry, runtime)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     for coordinator in runtime.coordinators.values():
@@ -389,10 +395,67 @@ def _entity_unique_id(
     one either.
     """
     device_id: int | None = coordinator.device_id
-    if device_id is None:
+    if device_id is None or coordinator.config_entry is None:
         return None
-    prefix: str | None = coordinator.prefix
-    return f"{prefix}-{device_id}-{desc.key}" if prefix else f"{device_id}-{desc.key}"
+    head: str = get_unique_id_head(
+        coordinator.config_entry.entry_id, coordinator.prefix, device_id
+    )
+    return f"{head}-{desc.key}"
+
+
+def _async_move_entity_unique_ids_to_gateway(
+    hass: HomeAssistant, entry: ConfigEntry, runtime: GatewayRuntime
+) -> int:
+    """Give the entities of this gateway unique ids that name the gateway.
+
+    In earlier releases a unique id was the prefix, the slave id and the key, so two
+    gateways with a device on the same slave id and no prefix claimed the same
+    unique ids: Home Assistant kept the entities of the gateway set up first and
+    ignored those of the other one, logging "does not generate unique IDs" for
+    every one of them. The unique id now starts with the config entry id of the
+    gateway.
+
+    Only the unique id changes: the entity keeps its entity id, its history and
+    everything the user set on it. Only entities of this entry are touched, so
+    the entities the other gateway never got to register are simply created on
+    its next setup. Runs on every setup and does nothing once it has been done.
+    """
+    entity_registry: er.EntityRegistry = er.async_get(hass)
+    # Legacy unique id -> the unique id it moves to.
+    renames: dict[str, str] = {}
+    for coordinator in runtime.coordinators.values():
+        device_id: int | None = coordinator.device_id
+        if device_id is None:
+            continue
+        old: str = get_legacy_unique_id_head(coordinator.prefix, device_id)
+        new: str = get_unique_id_head(entry.entry_id, coordinator.prefix, device_id)
+        for desc in coordinator.device_info.entity_descriptions:
+            renames[f"{old}-{desc.key}"] = f"{new}-{desc.key}"
+
+    moved: int = 0
+    for entity_entry in er.async_entries_for_config_entry(
+        entity_registry, entry.entry_id
+    ):
+        new_unique_id: str | None = renames.get(entity_entry.unique_id)
+        if new_unique_id is None:
+            continue
+        if entity_registry.async_get_entity_id(
+            entity_entry.domain, DOMAIN, new_unique_id
+        ):
+            # Already registered under the new id, by a release that had this
+            # change: the old entry is a left-over, and the new one is kept.
+            continue
+        entity_registry.async_update_entity(
+            entity_entry.entity_id, new_unique_id=new_unique_id
+        )
+        moved += 1
+    if moved:
+        _LOGGER.info(
+            "Moved %d entities of %s to unique ids that name the gateway",
+            moved,
+            entry.title,
+        )
+    return moved
 
 
 def _setup_device_devices(

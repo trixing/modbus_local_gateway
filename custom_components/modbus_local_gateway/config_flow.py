@@ -72,7 +72,7 @@ from .const import (
     SUBENTRY_TYPE_DEVICE,
     TRANSPORT_SERIAL_PROXY,
 )
-from .coordinator import async_restore_legacy_entity_ids
+from .coordinator import async_restore_legacy_entity_ids, get_unique_id_head
 from .entity_management.device_loader import create_device_info, load_devices
 from .entity_management.modbus_device_info import ModbusDeviceInfo
 from .helpers import (
@@ -737,15 +737,16 @@ def _async_move_device(
     _async_move_entity_unique_ids(
         hass=hass,
         device=device,
-        old=_unique_id_head(get_device_config(entry, subentry)),
-        new=_unique_id_head(config),
+        old=_unique_id_head(entry, get_device_config(entry, subentry)),
+        new=_unique_id_head(entry, config),
     )
 
 
-def _unique_id_head(config: Mapping[str, Any]) -> str:
-    """Return the prefix and slave id an entity unique id starts with."""
-    prefix: str = config.get(CONF_PREFIX) or ""
-    return f"{prefix + '-' if prefix else ''}{config[CONF_DEVICE_ID]}"
+def _unique_id_head(entry: ConfigEntry, config: Mapping[str, Any]) -> str:
+    """Return the gateway, prefix and slave id an entity unique id starts with."""
+    return get_unique_id_head(
+        entry.entry_id, config.get(CONF_PREFIX) or None, config[CONF_DEVICE_ID]
+    )
 
 
 def _async_move_entity_unique_ids(

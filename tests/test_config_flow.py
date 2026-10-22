@@ -1131,7 +1131,7 @@ async def test_moving_a_device_renames_the_unique_ids_of_its_entities(
     entity = entity_registry.async_get_or_create(
         Platform.SENSOR,
         DOMAIN,
-        "test-1-firmware_version",
+        f"{entry.entry_id}-test-1-firmware_version",
         config_entry=entry,
         device_id=device.id,
         config_subentry_id=subentry.subentry_id,
@@ -1151,7 +1151,7 @@ async def test_moving_a_device_renames_the_unique_ids_of_its_entities(
 
     moved = entity_registry.async_get(entity_id)
     assert moved is not None
-    assert moved.unique_id == "shed-2-firmware_version"
+    assert moved.unique_id == f"{entry.entry_id}-shed-2-firmware_version"
     assert moved.device_id == device.id
 
 

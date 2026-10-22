@@ -4,7 +4,11 @@
 from types import MappingProxyType
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from homeassistant.config_entries import ConfigEntryDisabler, ConfigSubentry
+from homeassistant.config_entries import (
+    ConfigEntryDisabler,
+    ConfigEntryState,
+    ConfigSubentry,
+)
 from homeassistant.exceptions import ConfigEntryError, ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
@@ -930,7 +934,7 @@ async def test_setup_moves_a_time_entity_off_the_datetime_platform(
     assert registry.async_get("datetime.test_period1_end") is None
     moved = registry.async_get("time.test_period1_end")
     assert moved is not None
-    assert moved.unique_id == "test-1-period1_end"
+    assert moved.unique_id == f"{entry.entry_id}-test-1-period1_end"
 
 
 @pytest.mark.asyncio
@@ -1057,3 +1061,103 @@ async def test_setup_moving_a_time_entity_keeps_what_the_user_set(
     assert moved.name == "Battery period 1"
     assert moved.icon == "mdi:battery"
     assert moved.options == {"datetime": {"wake_time": "07:00"}}
+
+
+@pytest.mark.asyncio
+async def test_setup_moves_legacy_unique_ids_onto_the_gateway(
+    hass: HomeAssistant, enable_custom_integrations: None
+) -> None:
+    """An entity registered by an earlier release keeps its entity id and settings.
+
+    Only its unique id changes, to one that starts with the gateway's config
+    entry id, so Home Assistant does not create a second entity next to it.
+    """
+    entry = mock_gateway_entry(filename="SDM630.yaml")
+    entry.add_to_hass(hass)
+    registry = er.async_get(hass)
+    legacy = registry.async_get_or_create(
+        "sensor",
+        DOMAIN,
+        "test-1-serial_num",
+        config_entry=entry,
+        suggested_object_id="my_serial",
+    )
+    registry.async_update_entity(legacy.entity_id, name="Kept name")
+
+    await _setup_gateway(hass, entry)
+
+    moved = registry.async_get(legacy.entity_id)
+    assert moved is not None
+    assert moved.unique_id == f"{entry.entry_id}-test-1-serial_num"
+    assert moved.name == "Kept name"
+    assert registry.async_get_entity_id("sensor", DOMAIN, "test-1-serial_num") is None
+    assert [
+        e.entity_id
+        for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+        if e.unique_id.endswith("-serial_num")
+    ] == [legacy.entity_id]
+
+
+@pytest.mark.asyncio
+async def test_two_gateways_with_the_same_slave_id_both_get_their_entities(
+    hass: HomeAssistant, enable_custom_integrations: None
+) -> None:
+    """Devices on the same slave id behind two gateways do not collide.
+
+    Earlier releases left the gateway out of the unique id, so the gateway set up
+    second had every entity ignored as a duplicate of the first one's.
+    """
+    first = mock_gateway_entry(prefix="", filename="SDM630.yaml", host="10.0.0.12")
+    second = mock_gateway_entry(prefix="", filename="SDM630.yaml", host="10.0.0.13")
+    registry = er.async_get(hass)
+    for entry in (first, second):
+        entry.add_to_hass(hass)
+        await _setup_gateway(hass, entry)
+
+    first_ids = {
+        e.unique_id for e in er.async_entries_for_config_entry(registry, first.entry_id)
+    }
+    second_ids = {
+        e.unique_id
+        for e in er.async_entries_for_config_entry(registry, second.entry_id)
+    }
+    assert f"{first.entry_id}-1-serial_num" in first_ids
+    assert f"{second.entry_id}-1-serial_num" in second_ids
+    assert len(first_ids) == len(second_ids) > 0
+
+
+@pytest.mark.asyncio
+async def test_only_the_gateway_that_owns_a_legacy_unique_id_moves_it(
+    hass: HomeAssistant, enable_custom_integrations: None
+) -> None:
+    """A colliding legacy id stays with the gateway it was registered for.
+
+    The other gateway's entities were never registered, so they are simply
+    created under their own new unique ids.
+    """
+    owner = mock_gateway_entry(prefix="", filename="SDM630.yaml", host="10.0.0.13")
+    other = mock_gateway_entry(prefix="", filename="SDM630.yaml", host="10.0.0.12")
+    owner.add_to_hass(hass)
+    other.add_to_hass(hass)
+    registry = er.async_get(hass)
+    legacy = registry.async_get_or_create(
+        "sensor",
+        DOMAIN,
+        "1-serial_num",
+        config_entry=owner,
+        suggested_object_id="owner_serial",
+    )
+
+    # Setting one gateway up sets up every gateway of the integration.
+    await _setup_gateway(hass, owner)
+    assert other.state is ConfigEntryState.LOADED
+
+    kept = registry.async_get(legacy.entity_id)
+    assert kept is not None
+    assert kept.config_entry_id == owner.entry_id
+    assert kept.unique_id == f"{owner.entry_id}-1-serial_num"
+    created = registry.async_get_entity_id(
+        "sensor", DOMAIN, f"{other.entry_id}-1-serial_num"
+    )
+    assert created is not None
+    assert created != legacy.entity_id

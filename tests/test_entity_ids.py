@@ -167,7 +167,7 @@ async def test_legacy_entity_ids_are_only_suggested(hass: HomeAssistant) -> None
         )
         assert entity.entity_id == expected
         # The unique id is the identity of the entity and never changes.
-        assert entity.unique_id == "test-1-firmware_version"
+        assert entity.unique_id == f"{entry.entry_id}-test-1-firmware_version"
 
 
 @pytest.mark.asyncio
@@ -431,4 +431,4 @@ async def test_a_camel_case_key_does_not_change_the_unique_id(
         device=MagicMock(),
     )
 
-    assert entity.unique_id == "test-1-GridFirstStopSOC"
+    assert entity.unique_id == f"{entry.entry_id}-test-1-GridFirstStopSOC"

@@ -67,7 +67,30 @@ __all__ = [
     "async_restore_legacy_entity_ids",
     "get_host_object_id",
     "get_legacy_entity_id",
+    "get_legacy_unique_id_head",
+    "get_unique_id_head",
 ]
+
+
+def get_legacy_unique_id_head(prefix: str | None, device_id: int | str) -> str:
+    """Return what the unique id of an entity started with in earlier releases.
+
+    The prefix and the slave id alone: nothing said which gateway the device is
+    behind, so two gateways with a device on the same slave id and no prefix
+    claimed the same unique ids, and Home Assistant ignored the entities of
+    whichever gateway was set up second.
+    """
+    return f"{prefix}-{device_id}" if prefix else f"{device_id}"
+
+
+def get_unique_id_head(entry_id: str, prefix: str | None, device_id: int | str) -> str:
+    """Return what the unique id of an entity starts with.
+
+    The gateway is named by its config entry id rather than its host: the id is
+    unique per gateway and never changes, so the connection can still be moved
+    to another host or port without a single unique id changing with it.
+    """
+    return f"{entry_id}-{get_legacy_unique_id_head(prefix, device_id)}"
 
 
 def get_host_object_id(host: str) -> str:
@@ -191,15 +214,15 @@ class ModbusCoordinatorEntity(CoordinatorEntity):
                 f"{Platform(control_type)}.{host_id}_{slugify(ctx.desc.key)}"
             )
 
-        # Keep unique_id compatible with previous releases so existing entities
-        # can be renamed in-place.
-        # (If you change unique_id, HA creates NEW entities instead of renaming
-        # the existing ones.)
-        self._attr_unique_id: str | None = (
-            f"{prefix}-{ctx.device_id}-{ctx.desc.key}"
-            if prefix
-            else f"{ctx.device_id}-{ctx.desc.key}"
+        # Changing the format of unique_id makes HA create NEW entities instead
+        # of keeping the existing ones, so entities registered under an older
+        # format are moved onto this one at setup, before any platform runs.
+        head: str = (
+            get_unique_id_head(coordinator.config_entry.entry_id, prefix, ctx.device_id)
+            if coordinator.config_entry
+            else get_legacy_unique_id_head(prefix, ctx.device_id)
         )
+        self._attr_unique_id: str | None = f"{head}-{ctx.desc.key}"
 
         self._attr_device_info: DeviceInfo | None = device
         self.coordinator: ModbusCoordinator

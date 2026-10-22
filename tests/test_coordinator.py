@@ -414,7 +414,9 @@ def test_get_data_returns_none_when_key_not_in_data(
 
 def test_modbus_coordinator_entity_init_sets_attributes() -> None:
     """Test ModbusCoordinatorEntity __init__ sets attributes correctly."""
-    coordinator = MagicMock(config_entry=MagicMock(data={}), prefix=None)
+    coordinator = MagicMock(
+        config_entry=MagicMock(data={}, entry_id="gateway"), prefix=None
+    )
     device = MagicMock()
     desc = ModbusSensorEntityDescription(
         register_address=10,
@@ -423,9 +425,21 @@ def test_modbus_coordinator_entity_init_sets_attributes() -> None:
     )
     ctx = ModbusContext(2, desc)
     entity = ModbusCoordinatorEntity(coordinator, ctx, device)
-    assert entity._attr_unique_id == "2-test_key"
+    assert entity._attr_unique_id == "gateway-2-test_key"
     assert entity._attr_device_info == device
     assert entity.coordinator is coordinator
+
+
+def test_modbus_coordinator_entity_without_an_entry_has_no_gateway_in_its_id() -> None:
+    """Without a config entry there is no gateway to name in the unique id."""
+    coordinator = MagicMock(config_entry=None, prefix=None)
+    desc = ModbusSensorEntityDescription(
+        register_address=10,
+        key="test_key",
+        data_type=ModbusDataType.INPUT_REGISTER,
+    )
+    entity = ModbusCoordinatorEntity(coordinator, ModbusContext(2, desc), MagicMock())
+    assert entity._attr_unique_id == "2-test_key"
 
 
 def test_modbus_coordinator_entity_init_raises_typeerror_on_invalid_desc() -> None:

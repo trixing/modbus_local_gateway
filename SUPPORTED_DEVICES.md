@@ -17,6 +17,8 @@ bench. Which devices have actually been exercised are listed under
 | Eastron            | SDM-230                                      | [`SDM230.yaml`](custom_components/modbus_local_gateway/device_configs/SDM230.yaml)                                   |
 | Eastron            | SDM-630                                      | [`SDM630.yaml`](custom_components/modbus_local_gateway/device_configs/SDM630.yaml)                                   |
 | ebyte              | ME31-AXAX404                                 | [`ME31-AXAX404.yaml`](custom_components/modbus_local_gateway/device_configs/ME31-AXAX404.yaml)                       |
+| Eltako             | DSZ16D / DSZ16DE                             | [`Eltako_DSZ16D.yaml`](custom_components/modbus_local_gateway/device_configs/Eltako_DSZ16D.yaml)                     |
+| Eltako             | DSZ16DZ / DSZ16DZE                           | [`Eltako_DSZ16DZ.yaml`](custom_components/modbus_local_gateway/device_configs/Eltako_DSZ16DZ.yaml)                   |
 | Finder             | 7M.24                                        | [`7M_24.yaml`](custom_components/modbus_local_gateway/device_configs/7M_24.yaml)                                     |
 | Finder             | 7M.38                                        | [`7M_38.yaml`](custom_components/modbus_local_gateway/device_configs/7M_38.yaml)                                     |
 | Fröling GmbH       | BWP300 PV                                    | [`Fröling_BWP300PV.yaml`](custom_components/modbus_local_gateway/device_configs/Fr%C3%B6ling_BWP300PV.yaml)          |

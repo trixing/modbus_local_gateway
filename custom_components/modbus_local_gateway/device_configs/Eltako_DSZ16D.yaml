@@ -1,0 +1,623 @@
+# Eltako DSZ16D / DSZ16DE - 3-phase energy meter (import only) (Modbus RTU)
+#
+# Based on the Eltako Modbus-RTU Protocol Specification V3.7.4.
+# Default serial settings: 9600 baud, 8N1.
+#
+# This config assumes the meter's default "integer" data format
+# (holding register 0x001E = 0). In this mode:
+#   - most values are unsigned 32-bit integers with 2 decimals (x 0.01)
+#   - power values (W/VA/var) are signed 32-bit integers without decimals
+#   - power factor / cos phi are signed 32-bit integers with 3 decimals
+# All 32-bit values are stored high word first.
+
+device:
+  manufacturer: Eltako
+  model: DSZ16D
+
+read_only_word:
+  # --- Voltages ---
+  voltage_l1:
+    name: Voltage L1
+    address: 0x0000
+    size: 2
+    multiplier: 0.01
+    precision: 1
+    unit_of_measurement: Volts
+
+  voltage_l2:
+    name: Voltage L2
+    address: 0x0002
+    size: 2
+    multiplier: 0.01
+    precision: 1
+    unit_of_measurement: Volts
+
+  voltage_l3:
+    name: Voltage L3
+    address: 0x0004
+    size: 2
+    multiplier: 0.01
+    precision: 1
+    unit_of_measurement: Volts
+
+  voltage_l1_l2:
+    name: Voltage L1-L2
+    address: 0x0056
+    size: 2
+    multiplier: 0.01
+    precision: 1
+    unit_of_measurement: Volts
+    entity_registry_enabled_default: false
+
+  voltage_l2_l3:
+    name: Voltage L2-L3
+    address: 0x0058
+    size: 2
+    multiplier: 0.01
+    precision: 1
+    unit_of_measurement: Volts
+    entity_registry_enabled_default: false
+
+  voltage_l3_l1:
+    name: Voltage L3-L1
+    address: 0x005A
+    size: 2
+    multiplier: 0.01
+    precision: 1
+    unit_of_measurement: Volts
+    entity_registry_enabled_default: false
+
+  # --- Currents ---
+  current_l1:
+    name: Current L1
+    address: 0x0006
+    size: 2
+    multiplier: 0.01
+    precision: 2
+    unit_of_measurement: Amps
+
+  current_l2:
+    name: Current L2
+    address: 0x0008
+    size: 2
+    multiplier: 0.01
+    precision: 2
+    unit_of_measurement: Amps
+
+  current_l3:
+    name: Current L3
+    address: 0x000A
+    size: 2
+    multiplier: 0.01
+    precision: 2
+    unit_of_measurement: Amps
+
+  current_n:
+    name: Neutral Current
+    address: 0x0050
+    size: 2
+    multiplier: 0.01
+    precision: 2
+    unit_of_measurement: Amps
+
+  # --- Active power ---
+  active_power_l1:
+    name: Active Power L1
+    address: 0x000C
+    size: 2
+    signed: true
+    precision: 0
+    unit_of_measurement: Watts
+
+  active_power_l2:
+    name: Active Power L2
+    address: 0x000E
+    size: 2
+    signed: true
+    precision: 0
+    unit_of_measurement: Watts
+
+  active_power_l3:
+    name: Active Power L3
+    address: 0x0010
+    size: 2
+    signed: true
+    precision: 0
+    unit_of_measurement: Watts
+
+  active_power_total:
+    name: Total Active Power
+    address: 0x0034
+    size: 2
+    signed: true
+    precision: 0
+    unit_of_measurement: Watts
+
+  # --- Apparent power ---
+  apparent_power_l1:
+    name: Apparent Power L1
+    address: 0x0012
+    size: 2
+    signed: true
+    precision: 0
+    unit_of_measurement: VoltAmps
+    entity_registry_enabled_default: false
+
+  apparent_power_l2:
+    name: Apparent Power L2
+    address: 0x0014
+    size: 2
+    signed: true
+    precision: 0
+    unit_of_measurement: VoltAmps
+    entity_registry_enabled_default: false
+
+  apparent_power_l3:
+    name: Apparent Power L3
+    address: 0x0016
+    size: 2
+    signed: true
+    precision: 0
+    unit_of_measurement: VoltAmps
+    entity_registry_enabled_default: false
+
+  apparent_power_total:
+    name: Total Apparent Power
+    address: 0x0036
+    size: 2
+    signed: true
+    precision: 0
+    unit_of_measurement: VoltAmps
+
+  # --- Reactive power ---
+  reactive_power_l1:
+    name: Reactive Power L1
+    address: 0x0018
+    size: 2
+    signed: true
+    precision: 0
+    unit_of_measurement: VAr
+    entity_registry_enabled_default: false
+
+  reactive_power_l2:
+    name: Reactive Power L2
+    address: 0x001A
+    size: 2
+    signed: true
+    precision: 0
+    unit_of_measurement: VAr
+    entity_registry_enabled_default: false
+
+  reactive_power_l3:
+    name: Reactive Power L3
+    address: 0x001C
+    size: 2
+    signed: true
+    precision: 0
+    unit_of_measurement: VAr
+    entity_registry_enabled_default: false
+
+  reactive_power_total:
+    name: Total Reactive Power
+    address: 0x0038
+    size: 2
+    signed: true
+    precision: 0
+    unit_of_measurement: VAr
+
+  # --- Power factor / cos phi ---
+  power_factor_l1:
+    name: Power Factor L1
+    address: 0x001E
+    size: 2
+    signed: true
+    multiplier: 0.001
+    precision: 3
+    device_class: power_factor
+    state_class: measurement
+    entity_registry_enabled_default: false
+
+  power_factor_l2:
+    name: Power Factor L2
+    address: 0x0020
+    size: 2
+    signed: true
+    multiplier: 0.001
+    precision: 3
+    device_class: power_factor
+    state_class: measurement
+    entity_registry_enabled_default: false
+
+  power_factor_l3:
+    name: Power Factor L3
+    address: 0x0022
+    size: 2
+    signed: true
+    multiplier: 0.001
+    precision: 3
+    device_class: power_factor
+    state_class: measurement
+    entity_registry_enabled_default: false
+
+  power_factor_total:
+    name: Total Power Factor
+    address: 0x003E
+    size: 2
+    signed: true
+    multiplier: 0.001
+    precision: 3
+    device_class: power_factor
+    state_class: measurement
+
+  cos_phi_l1:
+    name: Cos Phi L1
+    address: 0x0024
+    size: 2
+    signed: true
+    multiplier: 0.001
+    precision: 3
+    state_class: measurement
+    entity_registry_enabled_default: false
+
+  cos_phi_l2:
+    name: Cos Phi L2
+    address: 0x0026
+    size: 2
+    signed: true
+    multiplier: 0.001
+    precision: 3
+    state_class: measurement
+    entity_registry_enabled_default: false
+
+  cos_phi_l3:
+    name: Cos Phi L3
+    address: 0x0028
+    size: 2
+    signed: true
+    multiplier: 0.001
+    precision: 3
+    state_class: measurement
+    entity_registry_enabled_default: false
+
+  cos_phi_total:
+    name: Total Cos Phi
+    address: 0x0040
+    size: 2
+    signed: true
+    multiplier: 0.001
+    precision: 3
+    state_class: measurement
+    entity_registry_enabled_default: false
+
+  # --- Frequency ---
+  frequency:
+    name: Frequency
+    address: 0x0046
+    size: 2
+    multiplier: 0.01
+    precision: 2
+    unit_of_measurement: Hz
+
+  # --- Energy totals ---
+  import_energy_total:
+    name: Total Import Active Energy
+    address: 0x0048
+    size: 2
+    multiplier: 0.01
+    precision: 2
+    unit_of_measurement: kWh
+    never_resets: true
+
+  reactive_energy_positive_total:
+    name: Total Positive Reactive Energy
+    address: 0x0052
+    size: 2
+    multiplier: 0.01
+    precision: 2
+    unit_of_measurement: kVArh
+    never_resets: true
+
+  import_energy_resettable:
+    name: Resettable Import Active Energy
+    address: 0x0060
+    size: 2
+    multiplier: 0.01
+    precision: 2
+    unit_of_measurement: kWh
+    entity_registry_enabled_default: false
+
+  # --- Energy per phase ---
+  import_energy_l1:
+    name: Import Active Energy L1
+    address: 0x008C
+    size: 2
+    multiplier: 0.01
+    precision: 2
+    unit_of_measurement: kWh
+    never_resets: true
+    entity_registry_enabled_default: false
+
+  import_energy_l2:
+    name: Import Active Energy L2
+    address: 0x008E
+    size: 2
+    multiplier: 0.01
+    precision: 2
+    unit_of_measurement: kWh
+    never_resets: true
+    entity_registry_enabled_default: false
+
+  import_energy_l3:
+    name: Import Active Energy L3
+    address: 0x0090
+    size: 2
+    multiplier: 0.01
+    precision: 2
+    unit_of_measurement: kWh
+    never_resets: true
+    entity_registry_enabled_default: false
+
+  # --- Tariff energy ---
+  tariff_1_import_energy:
+    name: Tariff 1 Import Active Energy
+    address: 0x0064
+    size: 2
+    multiplier: 0.01
+    precision: 2
+    unit_of_measurement: kWh
+    never_resets: true
+
+  tariff_1_import_energy_resettable:
+    name: Tariff 1 Resettable Import Active Energy
+    address: 0x0066
+    size: 2
+    multiplier: 0.01
+    precision: 2
+    unit_of_measurement: kWh
+    entity_registry_enabled_default: false
+
+  tariff_2_import_energy:
+    name: Tariff 2 Import Active Energy
+    address: 0x006C
+    size: 2
+    multiplier: 0.01
+    precision: 2
+    unit_of_measurement: kWh
+    never_resets: true
+
+  tariff_2_import_energy_resettable:
+    name: Tariff 2 Resettable Import Active Energy
+    address: 0x006E
+    size: 2
+    multiplier: 0.01
+    precision: 2
+    unit_of_measurement: kWh
+    entity_registry_enabled_default: false
+
+  tariff_3_import_energy:
+    name: Tariff 3 Import Active Energy
+    address: 0x0074
+    size: 2
+    multiplier: 0.01
+    precision: 2
+    unit_of_measurement: kWh
+    never_resets: true
+    entity_registry_enabled_default: false
+
+  tariff_3_import_energy_resettable:
+    name: Tariff 3 Resettable Import Active Energy
+    address: 0x0076
+    size: 2
+    multiplier: 0.01
+    precision: 2
+    unit_of_measurement: kWh
+    entity_registry_enabled_default: false
+
+  tariff_4_import_energy:
+    name: Tariff 4 Import Active Energy
+    address: 0x0084
+    size: 2
+    multiplier: 0.01
+    precision: 2
+    unit_of_measurement: kWh
+    never_resets: true
+    entity_registry_enabled_default: false
+
+  tariff_4_import_energy_resettable:
+    name: Tariff 4 Resettable Import Active Energy
+    address: 0x0086
+    size: 2
+    multiplier: 0.01
+    precision: 2
+    unit_of_measurement: kWh
+    entity_registry_enabled_default: false
+
+  active_tariff:
+    name: Active Tariff
+    address: 0x0098
+    size: 2
+    icon: mdi:cash-clock
+    map:
+      1: Tariff 1
+      2: Tariff 2
+      3: Tariff 3
+      4: Tariff 4
+
+read_write_word:
+  # --- Configuration ---
+  tariff_selection:
+    name: Tariff Selection
+    address: 0x005A
+    size: 2
+    icon: mdi:cash-clock
+    entity_category: config
+    control: select
+    options:
+      0: External (E2/E3/E4 inputs)
+      1: Tariff 1
+      2: Tariff 2
+      3: Tariff 3
+      4: Tariff 4
+
+  reverse_direction:
+    name: Reverse Measurement Direction
+    address: 0xF916
+    size: 2
+    icon: mdi:swap-horizontal
+    entity_category: config
+    control: switch
+
+  s0_import_pulse_width:
+    name: S0 Import Pulse Width
+    address: 0x0056
+    size: 2
+    icon: mdi:pulse
+    entity_category: config
+    entity_registry_enabled_default: false
+    control: number
+    number:
+      min: 2
+      max: 99
+      step: 1
+
+  s0_import_pulse_constant:
+    name: S0 Import Pulse Constant
+    address: 0xF910
+    size: 2
+    icon: mdi:pulse
+    entity_category: config
+    entity_registry_enabled_default: false
+    control: select
+    options:
+      1: 0.01 imp/kWh
+      2: 0.1 imp/kWh
+      3: 1 imp/kWh
+      4: 10 imp/kWh
+      5: 100 imp/kWh
+      6: 1000 imp/kWh
+      7: 2000 imp/kWh
+      8: 10000 imp/kWh
+
+  # --- Counter resets (writing 1 sets the counter to 0) ---
+  reset_import_energy_resettable:
+    name: Reset Resettable Import Energy
+    address: 0x005C
+    size: 2
+    icon: mdi:counter
+    entity_category: config
+    entity_registry_enabled_default: false
+    control: switch
+
+  reset_tariff_1_import_energy:
+    name: Reset Tariff 1 Resettable Import Energy
+    address: 0x0060
+    size: 2
+    icon: mdi:counter
+    entity_category: config
+    entity_registry_enabled_default: false
+    control: switch
+
+  reset_tariff_2_import_energy:
+    name: Reset Tariff 2 Resettable Import Energy
+    address: 0x0064
+    size: 2
+    icon: mdi:counter
+    entity_category: config
+    entity_registry_enabled_default: false
+    control: switch
+
+  reset_tariff_3_import_energy:
+    name: Reset Tariff 3 Resettable Import Energy
+    address: 0x0068
+    size: 2
+    icon: mdi:counter
+    entity_category: config
+    entity_registry_enabled_default: false
+    control: switch
+
+  reset_tariff_4_import_energy:
+    name: Reset Tariff 4 Resettable Import Energy
+    address: 0x006C
+    size: 2
+    icon: mdi:counter
+    entity_category: config
+    entity_registry_enabled_default: false
+    control: switch
+
+  # --- Communication settings (read-only here, changing them would break the link) ---
+  com_parity:
+    name: Parity / Stop Bits
+    address: 0x0012
+    size: 2
+    entity_category: diagnostic
+    entity_registry_enabled_default: false
+    map:
+      0: 8N1
+      1: 8E1
+      2: 8O1
+      3: 8N2
+
+  com_address:
+    name: Modbus Address
+    address: 0x0014
+    size: 2
+    icon: mdi:serial-port
+    entity_category: diagnostic
+    entity_registry_enabled_default: false
+
+  com_baud_rate:
+    name: Baud Rate
+    address: 0x001C
+    size: 2
+    entity_category: diagnostic
+    entity_registry_enabled_default: false
+    map:
+      0: 300 bps
+      1: 600 bps
+      2: 1200 bps
+      3: 2400 bps
+      4: 4800 bps
+      5: 9600 bps
+      6: 14400 bps
+      7: 19200 bps
+      8: 38400 bps
+      9: 57600 bps
+      10: 115200 bps
+
+  data_format:
+    name: Data Format
+    address: 0x001E
+    size: 2
+    entity_category: diagnostic
+    entity_registry_enabled_default: false
+    map:
+      0: Integer
+      1: Float
+
+  # --- Device information ---
+  manufacturer_name:
+    name: Manufacturer
+    address: 0xFC08
+    size: 4
+    string: true
+    entity_category: diagnostic
+
+  meter_model:
+    name: Meter Model
+    address: 0xFC0C
+    size: 2
+    entity_category: diagnostic
+    map:
+      1: DSZ15DZMOD
+      2: DSZ16D
+      3: DSZ16DZ
+      4: DSZ16WD
+      5: DSZ16WDZ
+      6: WSZ16D
+      7: WSZ16DZ
+
+  software_version:
+    name: Software Version
+    address: 0xFC0E
+    size: 2
+    entity_category: diagnostic

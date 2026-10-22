@@ -23,6 +23,7 @@ read_only_word:
     multiplier: 0.01
     precision: 1
     unit_of_measurement: Volts
+    entity_registry_enabled_default: false
 
   voltage_l2:
     name: Voltage L2
@@ -31,6 +32,7 @@ read_only_word:
     multiplier: 0.01
     precision: 1
     unit_of_measurement: Volts
+    entity_registry_enabled_default: false
 
   voltage_l3:
     name: Voltage L3
@@ -39,6 +41,7 @@ read_only_word:
     multiplier: 0.01
     precision: 1
     unit_of_measurement: Volts
+    entity_registry_enabled_default: false
 
   voltage_l1_l2:
     name: Voltage L1-L2
@@ -75,6 +78,7 @@ read_only_word:
     multiplier: 0.01
     precision: 2
     unit_of_measurement: Amps
+    entity_registry_enabled_default: false
 
   current_l2:
     name: Current L2
@@ -83,6 +87,7 @@ read_only_word:
     multiplier: 0.01
     precision: 2
     unit_of_measurement: Amps
+    entity_registry_enabled_default: false
 
   current_l3:
     name: Current L3
@@ -91,6 +96,7 @@ read_only_word:
     multiplier: 0.01
     precision: 2
     unit_of_measurement: Amps
+    entity_registry_enabled_default: false
 
   current_n:
     name: Neutral Current
@@ -99,6 +105,7 @@ read_only_word:
     multiplier: 0.01
     precision: 2
     unit_of_measurement: Amps
+    entity_registry_enabled_default: false
 
   # --- Active power ---
   active_power_l1:
@@ -108,6 +115,7 @@ read_only_word:
     signed: true
     precision: 0
     unit_of_measurement: Watts
+    entity_registry_enabled_default: false
 
   active_power_l2:
     name: Active Power L2
@@ -116,6 +124,7 @@ read_only_word:
     signed: true
     precision: 0
     unit_of_measurement: Watts
+    entity_registry_enabled_default: false
 
   active_power_l3:
     name: Active Power L3
@@ -124,6 +133,7 @@ read_only_word:
     signed: true
     precision: 0
     unit_of_measurement: Watts
+    entity_registry_enabled_default: false
 
   active_power_total:
     name: Total Active Power
@@ -168,6 +178,7 @@ read_only_word:
     signed: true
     precision: 0
     unit_of_measurement: VoltAmps
+    entity_registry_enabled_default: false
 
   # --- Reactive power ---
   reactive_power_l1:
@@ -204,6 +215,7 @@ read_only_word:
     signed: true
     precision: 0
     unit_of_measurement: VAr
+    entity_registry_enabled_default: false
 
   # --- Power factor / cos phi ---
   power_factor_l1:
@@ -248,6 +260,7 @@ read_only_word:
     precision: 3
     device_class: power_factor
     state_class: measurement
+    entity_registry_enabled_default: false
 
   cos_phi_l1:
     name: Cos Phi L1
@@ -307,6 +320,7 @@ read_only_word:
     precision: 2
     unit_of_measurement: kWh
     never_resets: true
+    scan_interval: 60
 
   reactive_energy_positive_total:
     name: Total Positive Reactive Energy
@@ -316,6 +330,8 @@ read_only_word:
     precision: 2
     unit_of_measurement: kVArh
     never_resets: true
+    scan_interval: 60
+    entity_registry_enabled_default: false
 
   import_energy_resettable:
     name: Resettable Import Active Energy
@@ -324,6 +340,7 @@ read_only_word:
     multiplier: 0.01
     precision: 2
     unit_of_measurement: kWh
+    scan_interval: 60
     entity_registry_enabled_default: false
 
   # --- Energy per phase ---
@@ -335,6 +352,7 @@ read_only_word:
     precision: 2
     unit_of_measurement: kWh
     never_resets: true
+    scan_interval: 60
     entity_registry_enabled_default: false
 
   import_energy_l2:
@@ -345,6 +363,7 @@ read_only_word:
     precision: 2
     unit_of_measurement: kWh
     never_resets: true
+    scan_interval: 60
     entity_registry_enabled_default: false
 
   import_energy_l3:
@@ -355,6 +374,7 @@ read_only_word:
     precision: 2
     unit_of_measurement: kWh
     never_resets: true
+    scan_interval: 60
     entity_registry_enabled_default: false
 
   # --- Tariff energy ---
@@ -366,6 +386,8 @@ read_only_word:
     precision: 2
     unit_of_measurement: kWh
     never_resets: true
+    scan_interval: 60
+    entity_registry_enabled_default: false
 
   tariff_1_import_energy_resettable:
     name: Tariff 1 Resettable Import Active Energy
@@ -374,6 +396,7 @@ read_only_word:
     multiplier: 0.01
     precision: 2
     unit_of_measurement: kWh
+    scan_interval: 60
     entity_registry_enabled_default: false
 
   tariff_2_import_energy:
@@ -384,6 +407,8 @@ read_only_word:
     precision: 2
     unit_of_measurement: kWh
     never_resets: true
+    scan_interval: 60
+    entity_registry_enabled_default: false
 
   tariff_2_import_energy_resettable:
     name: Tariff 2 Resettable Import Active Energy
@@ -392,6 +417,7 @@ read_only_word:
     multiplier: 0.01
     precision: 2
     unit_of_measurement: kWh
+    scan_interval: 60
     entity_registry_enabled_default: false
 
   tariff_3_import_energy:
@@ -402,6 +428,7 @@ read_only_word:
     precision: 2
     unit_of_measurement: kWh
     never_resets: true
+    scan_interval: 60
     entity_registry_enabled_default: false
 
   tariff_3_import_energy_resettable:
@@ -411,6 +438,7 @@ read_only_word:
     multiplier: 0.01
     precision: 2
     unit_of_measurement: kWh
+    scan_interval: 60
     entity_registry_enabled_default: false
 
   tariff_4_import_energy:
@@ -421,6 +449,7 @@ read_only_word:
     precision: 2
     unit_of_measurement: kWh
     never_resets: true
+    scan_interval: 60
     entity_registry_enabled_default: false
 
   tariff_4_import_energy_resettable:
@@ -430,6 +459,7 @@ read_only_word:
     multiplier: 0.01
     precision: 2
     unit_of_measurement: kWh
+    scan_interval: 60
     entity_registry_enabled_default: false
 
   active_tariff:
@@ -442,6 +472,7 @@ read_only_word:
       2: Tariff 2
       3: Tariff 3
       4: Tariff 4
+    entity_registry_enabled_default: false
 
 read_write_word:
   # --- Configuration ---
@@ -458,6 +489,7 @@ read_write_word:
       2: Tariff 2
       3: Tariff 3
       4: Tariff 4
+    entity_registry_enabled_default: false
 
   reverse_direction:
     name: Reverse Measurement Direction
@@ -473,12 +505,12 @@ read_write_word:
     size: 2
     icon: mdi:pulse
     entity_category: config
-    entity_registry_enabled_default: false
     control: number
     number:
       min: 2
       max: 99
       step: 1
+    entity_registry_enabled_default: false
 
   s0_import_pulse_constant:
     name: S0 Import Pulse Constant
@@ -486,7 +518,6 @@ read_write_word:
     size: 2
     icon: mdi:pulse
     entity_category: config
-    entity_registry_enabled_default: false
     control: select
     options:
       1: 0.01 imp/kWh
@@ -497,6 +528,7 @@ read_write_word:
       6: 1000 imp/kWh
       7: 2000 imp/kWh
       8: 10000 imp/kWh
+    entity_registry_enabled_default: false
 
   # --- Counter resets (writing 1 sets the counter to 0) ---
   reset_import_energy_resettable:
@@ -505,8 +537,8 @@ read_write_word:
     size: 2
     icon: mdi:counter
     entity_category: config
-    entity_registry_enabled_default: false
     control: switch
+    entity_registry_enabled_default: false
 
   reset_tariff_1_import_energy:
     name: Reset Tariff 1 Resettable Import Energy
@@ -514,8 +546,8 @@ read_write_word:
     size: 2
     icon: mdi:counter
     entity_category: config
-    entity_registry_enabled_default: false
     control: switch
+    entity_registry_enabled_default: false
 
   reset_tariff_2_import_energy:
     name: Reset Tariff 2 Resettable Import Energy
@@ -523,8 +555,8 @@ read_write_word:
     size: 2
     icon: mdi:counter
     entity_category: config
-    entity_registry_enabled_default: false
     control: switch
+    entity_registry_enabled_default: false
 
   reset_tariff_3_import_energy:
     name: Reset Tariff 3 Resettable Import Energy
@@ -532,8 +564,8 @@ read_write_word:
     size: 2
     icon: mdi:counter
     entity_category: config
-    entity_registry_enabled_default: false
     control: switch
+    entity_registry_enabled_default: false
 
   reset_tariff_4_import_energy:
     name: Reset Tariff 4 Resettable Import Energy
@@ -541,8 +573,8 @@ read_write_word:
     size: 2
     icon: mdi:counter
     entity_category: config
-    entity_registry_enabled_default: false
     control: switch
+    entity_registry_enabled_default: false
 
   # --- Communication settings (read-only here, changing them would break the link) ---
   com_parity:
@@ -550,12 +582,12 @@ read_write_word:
     address: 0x0012
     size: 2
     entity_category: diagnostic
-    entity_registry_enabled_default: false
     map:
       0: 8N1
       1: 8E1
       2: 8O1
       3: 8N2
+    entity_registry_enabled_default: false
 
   com_address:
     name: Modbus Address
@@ -570,7 +602,6 @@ read_write_word:
     address: 0x001C
     size: 2
     entity_category: diagnostic
-    entity_registry_enabled_default: false
     map:
       0: 300 bps
       1: 600 bps
@@ -583,16 +614,17 @@ read_write_word:
       8: 38400 bps
       9: 57600 bps
       10: 115200 bps
+    entity_registry_enabled_default: false
 
   data_format:
     name: Data Format
     address: 0x001E
     size: 2
     entity_category: diagnostic
-    entity_registry_enabled_default: false
     map:
       0: Integer
       1: Float
+    entity_registry_enabled_default: false
 
   # --- Device information ---
   manufacturer_name:

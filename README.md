@@ -83,7 +83,8 @@ The port is opened once with those settings before anything is stored: a baud ra
 A gateway usually serves more than one device, so the devices are added to a gateway instead of each becoming a config entry of its own. Open the gateway's **Configure** page, choose **Add device**, and fill in:
 
 - **Device ID**: Modbus device ID (e.g., `1`).
-- **Prefix**: Optional device and entity name prefix (e.g., `Device 3`).
+- **Prefix**: Optional name for the device that its entity IDs start with (e.g., `uz_hz_61_63`
+  makes the total power `sensor.uz_hz_61_63_active_power_total`). See [Entity IDs](#entity-ids).
 - **Device config**: the YAML file describing the model (e.g., `Eastron SDM-230` for `SDM230.yaml`).
 - **Expected to be offline at times** (optional): for a device that switches itself off, such as a
   solar inverter after dark (default: off). See
@@ -93,7 +94,7 @@ Every device becomes a device of its own in Home Assistant, with the gateway as 
 
 #### Entity IDs
 
-Entities are created once and keep their entity ID from then on: the integration never renames an entity that already exists, so dashboards, automations and history survive an upgrade. Entities created from here on are named with the gateway host in front of the name, so that two gateways on one network cannot hand out the same entity ID. Reconfiguring a gateway can turn that prefix off for entities added later and, if asked for, move the entities of the devices back onto the entity IDs they had before the prefix existed — again by keeping the unique ID and the device, so nothing is re-registered and no history is lost.
+Entities are created once and keep their entity ID from then on: the integration never renames an entity that already exists, so dashboards, automations and history survive an upgrade. Entities created from here on are named with the device's prefix in front of the YAML key when the device has one (prefix `UZ HZ 61-63` or `uz_hz_61_63` and key `active_power_total` give `sensor.uz_hz_61_63_active_power_total`), and with the gateway host in front of it otherwise, so that two gateways on one network cannot hand out the same entity ID. Setting or changing a prefix later does not rename the entities a device already has; rename those in Home Assistant if you want them to match. Reconfiguring a gateway can turn the host off for entities added later (a device's own prefix still applies) and, if asked for, move the entities of the devices back onto the entity IDs they had before the host was put in front — again by keeping the unique ID and the device, so nothing is re-registered and no history is lost.
 
 ### Modifying Existing Devices
 

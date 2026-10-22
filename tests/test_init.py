@@ -991,7 +991,7 @@ async def test_setup_leaves_an_entity_of_another_platform_alone(
     entry = mock_gateway_entry(filename="MOD-6000TL-X.yaml")
     entry.add_to_hass(hass)
     registry = er.async_get(hass)
-    registry.async_get_or_create(
+    sensor = registry.async_get_or_create(
         "sensor",
         DOMAIN,
         "test-1-period1_end",
@@ -1001,8 +1001,13 @@ async def test_setup_leaves_an_entity_of_another_platform_alone(
 
     await _setup_gateway(hass, entry)
 
-    assert registry.async_get("sensor.test_period1_end") is not None
-    assert registry.async_get("time.test_period1_end") is None
+    kept = registry.async_get("sensor.test_period1_end")
+    assert kept is not None
+    assert kept.id == sensor.id
+    # The composite has a `time` entity of its own, named after the prefix,
+    # which is a different registry entry from the sensor.
+    created = registry.async_get("time.test_period1_end")
+    assert created is None or created.id != sensor.id
 
 
 @pytest.mark.asyncio

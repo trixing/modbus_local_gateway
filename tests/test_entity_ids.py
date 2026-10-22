@@ -158,7 +158,7 @@ async def test_legacy_entity_ids_are_only_suggested(hass: HomeAssistant) -> None
         (True, None),
         (False, "sensor.localhost_firmware_version"),
     ):
-        entry = mock_gateway_entry(legacy_entity_ids=legacy)
+        entry = mock_gateway_entry(prefix="", legacy_entity_ids=legacy)
         entry.add_to_hass(hass)
         entity = ModbusCoordinatorEntity(
             coordinator=_coordinator(hass, entry),
@@ -167,7 +167,7 @@ async def test_legacy_entity_ids_are_only_suggested(hass: HomeAssistant) -> None
         )
         assert entity.entity_id == expected
         # The unique id is the identity of the entity and never changes.
-        assert entity.unique_id == f"{entry.entry_id}-test-1-firmware_version"
+        assert entity.unique_id == f"{entry.entry_id}-1-firmware_version"
 
 
 @pytest.mark.asyncio
@@ -395,7 +395,7 @@ async def test_a_camel_case_key_makes_a_valid_entity_id(
     Home Assistant warns for every entity that sets such an id, and stops
     accepting them in 2027.2.0.
     """
-    entry = mock_gateway_entry(legacy_entity_ids=False)
+    entry = mock_gateway_entry(prefix="", legacy_entity_ids=False)
     entry.add_to_hass(hass)
     entity = ModbusCoordinatorEntity(
         coordinator=_coordinator(hass, entry),
@@ -432,3 +432,91 @@ async def test_a_camel_case_key_does_not_change_the_unique_id(
     )
 
     assert entity.unique_id == f"{entry.entry_id}-test-1-GridFirstStopSOC"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("legacy", [False, True], ids=["host_ids", "legacy_ids"])
+@pytest.mark.parametrize(
+    ("prefix", "expected"),
+    [
+        ("uz_hz_61_63", "sensor.uz_hz_61_63_active_power_total"),
+        ("UZ HZ 61-63", "sensor.uz_hz_61_63_active_power_total"),
+    ],
+    ids=["slug", "free_text"],
+)
+async def test_a_prefix_names_the_entities_of_its_device(
+    hass: HomeAssistant, legacy: bool, prefix: str, expected: str
+) -> None:
+    """A device given a prefix has its entities named after the prefix.
+
+    The prefix is what the user chose to tell the device apart, so it replaces
+    the host in front of the key, and applies whether or not the gateway puts
+    its host in front of the entity ids it makes up itself.
+    """
+    entry = mock_gateway_entry(prefix=prefix, legacy_entity_ids=legacy)
+    entry.add_to_hass(hass)
+    entity = ModbusCoordinatorEntity(
+        coordinator=_coordinator(hass, entry),
+        ctx=ModbusContext(device_id=1, desc=_description("active_power_total")),
+        device=MagicMock(),
+    )
+
+    assert entity.entity_id == expected
+    assert valid_entity_id(entity.entity_id)
+    # Only the suggested entity id changes: the unique id keeps the prefix as
+    # it was typed, so entities that already exist are found again.
+    assert entity.unique_id == f"{entry.entry_id}-{prefix}-1-active_power_total"
+
+
+@pytest.mark.asyncio
+async def test_a_prefix_with_nothing_of_a_slug_in_it_falls_back_to_the_host(
+    hass: HomeAssistant,
+) -> None:
+    """A prefix that slugifies to nothing cannot start an object id."""
+    entry = mock_gateway_entry(prefix="---", legacy_entity_ids=False)
+    entry.add_to_hass(hass)
+    entity = ModbusCoordinatorEntity(
+        coordinator=_coordinator(hass, entry),
+        ctx=ModbusContext(device_id=1, desc=DESCRIPTION),
+        device=MagicMock(),
+    )
+
+    assert entity.entity_id == "sensor.localhost_firmware_version"
+
+
+@pytest.mark.asyncio
+async def test_a_prefix_never_renames_an_existing_entity(
+    hass: HomeAssistant, enable_custom_integrations: None
+) -> None:
+    """Setting up a prefixed device keeps the entity ids already registered.
+
+    The prefix is only a suggestion for entities created from here on, like
+    the host before it: renaming would break automations and dashboards.
+    """
+    entry = mock_gateway_entry(prefix="uz_hz_61_63", filename="SDM630.yaml")
+    entry.add_to_hass(hass)
+    existing = _entity(
+        hass,
+        entry,
+        "sensor.localhost_serial_num",
+        unique_id=f"{entry.entry_id}-uz_hz_61_63-1-serial_num",
+    )
+
+    with patch(
+        "custom_components.modbus_local_gateway.AsyncModbusTcpClientGateway"
+        ".async_get_client_connection",
+        return_value=MagicMock(connected=True),
+    ):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+    registry = er.async_get(hass)
+    assert registry.async_get(existing.entity_id) is not None
+    assert registry.async_get("sensor.uz_hz_61_63_serial_num") is None
+    # An entity registered for the first time does get the prefix.
+    assert (
+        registry.async_get_entity_id(
+            "sensor", DOMAIN, f"{entry.entry_id}-uz_hz_61_63-1-Phase 1 Voltage"
+        )
+        == "sensor.uz_hz_61_63_phase_1_voltage"
+    )

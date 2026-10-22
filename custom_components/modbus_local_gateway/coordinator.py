@@ -175,12 +175,14 @@ class ModbusCoordinatorEntity(CoordinatorEntity):
         self.entity_description = ctx.desc
 
         prefix: str | None = None
+        prefix_object_id: str | None = None
         host_id: str | None = None
 
         if coordinator.config_entry:
             # The prefix is a per-device setting, so it comes from the sub-entry
             # rather than the gateway's data.
             prefix = coordinator.prefix
+            prefix_object_id = coordinator.prefix_object_id
             host: str | None = coordinator.config_entry.data.get(CONF_HOST)
 
             if host:
@@ -200,8 +202,16 @@ class ModbusCoordinatorEntity(CoordinatorEntity):
                 CONF_LEGACY_ENTITY_IDS, CONF_LEGACY_ENTITY_IDS_DEFAULT
             )
         )
+        # A device given a prefix is named after it instead: the prefix is what
+        # the user chose to tell this device apart, so `uz_hz_61_63` makes its
+        # total power `sensor.uz_hz_61_63_active_power_total`. That is the
+        # user's own choice of name, so it applies with legacy_entity_ids too,
+        # which only turns off the host the integration put there by itself.
+        object_head: str | None = prefix_object_id
+        if not object_head and not legacy_entity_ids:
+            object_head = host_id
         control_type: str = str(ctx.desc.control_type)
-        if host_id and not legacy_entity_ids:
+        if object_head:
             # Home Assistant derives the suggestion from the entity name, so an
             # integration asks for a specific object id by setting entity_id.
             # The yaml key is slugified because an object id has to be one: a key
@@ -211,7 +221,7 @@ class ModbusCoordinatorEntity(CoordinatorEntity):
             # the unique id below, so entities already registered under the key's
             # own spelling keep the entity id they have.
             self.entity_id = (
-                f"{Platform(control_type)}.{host_id}_{slugify(ctx.desc.key)}"
+                f"{Platform(control_type)}.{object_head}_{slugify(ctx.desc.key)}"
             )
 
         # Changing the format of unique_id makes HA create NEW entities instead
@@ -446,6 +456,20 @@ class ModbusCoordinator(TimestampDataUpdateCoordinator):
     def prefix(self) -> str | None:
         """Return the prefix this device's entities and ids carry, if any."""
         return self._subentry_data.get(CONF_PREFIX) or None
+
+    @property
+    def prefix_object_id(self) -> str | None:
+        """Return the prefix as the start of an object id, if there is one.
+
+        The prefix is free text, so `UZ HZ 61-63` becomes `uz_hz_61_63`. None
+        when there is no prefix, or nothing of it survives as an object id -
+        Home Assistant's slugify would make that `unknown`, which says nothing
+        about the device.
+        """
+        prefix: str | None = self.prefix
+        if not prefix or not any(char.isalnum() for char in prefix):
+            return None
+        return slugify(prefix)
 
     @property
     def device_id(self) -> int | None:
